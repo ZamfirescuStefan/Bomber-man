@@ -178,7 +178,7 @@ def min_max(stare):
     # aplic algoritmul minimax pe toate mutarile posibile (calculand astfel subarborii lor)
     mutariCuEstimare = [min_max(mutare) for mutare in stare.mutari_posibile]
 
-    if stare.j_curent == Joc.JMAX:
+    if stare.current_player == Joc.JMAX:
         # daca jucatorul e JMAX aleg starea-fiica cu estimarea maxima
         stare.stare_aleasa = max(mutariCuEstimare, key=lambda x: x.estimare)
     else:
@@ -198,7 +198,7 @@ def alpha_beta(alpha, beta, stare):
 
     stare.mutari_posibile = stare.mutari()
 
-    if stare.j_curent == Joc.JMAX:
+    if stare.current_player == Joc.JMAX:
         estimare_curenta = float('-inf')
 
         for mutare in stare.mutari_posibile:
@@ -213,7 +213,7 @@ def alpha_beta(alpha, beta, stare):
                 if alpha >= beta:
                     break
 
-    elif stare.j_curent == Joc.JMIN:
+    elif stare.current_player == Joc.JMIN:
         estimare_curenta = float('inf')
 
         for mutare in stare.mutari_posibile:

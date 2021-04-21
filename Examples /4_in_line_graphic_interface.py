@@ -258,7 +258,7 @@ def min_max(stare):
     # aplic algoritmul minimax pe toate mutarile posibile (calculand astfel subarborii lor)
     mutari_scor = [min_max(mutare) for mutare in stare.mutari_posibile]
 
-    if stare.j_curent == Joc.JMAX:
+    if stare.current_player == Joc.JMAX:
         # daca jucatorul e JMAX aleg starea-fiica cu scorul maxim
         stare.stare_aleasa = max(mutari_scor, key=lambda x: x.scor)
     else:
@@ -278,7 +278,7 @@ def alpha_beta(alpha, beta, stare):
 
     stare.mutari_posibile = stare.mutari()
 
-    if stare.j_curent == Joc.JMAX:
+    if stare.current_player == Joc.JMAX:
         scor_curent = float('-inf')
 
         for mutare in stare.mutari_posibile:
@@ -293,7 +293,7 @@ def alpha_beta(alpha, beta, stare):
                 if alpha >= beta:
                     break
 
-    elif stare.j_curent == Joc.JMIN:
+    elif stare.current_player == Joc.JMIN:
         scor_curent = float('inf')
 
         for mutare in stare.mutari_posibile:
