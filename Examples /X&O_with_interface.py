@@ -6,7 +6,7 @@ ADANCIME_MAX = 6
 
 
 def elem_identice(lista):
-    if (all(elem == lista[0] for elem in lista[1:])):
+    if all(elem == lista[0] for elem in lista[1:]):
         return lista[0] if lista[0] != Joc.GOL else False
     return False
 
@@ -266,7 +266,7 @@ def main():
     Joc.JMAX = '0' if Joc.JMIN == 'x' else 'x'
 
     # initializare tabla
-    tabla_curenta = Joc();
+    tabla_curenta = Joc()
     print("Tabla initiala")
     print(str(tabla_curenta))
 
