@@ -156,6 +156,7 @@ class Player:
         self.list_of_bombs = []
         self.nums_of_shields = 0
         self.inactive_bomb = None  # it can be a single inactive bomb
+        self.lost = False
 
     def __str__(self):
         print(self.list_of_bombs)

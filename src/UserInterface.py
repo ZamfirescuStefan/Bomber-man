@@ -36,6 +36,7 @@ class Joc:
     """
     Clasa care defineste jocul. Se va schimba de la un joc la altul.
     """
+    TIME_AUTO_BOMB = None
     display = None
     JMIN = None
     JMAX = None
@@ -127,7 +128,7 @@ class Joc:
         images_dir = os.path.join(os.path.dirname(__file__), "../Images/")
         cls.player1_img = pygame.image.load(images_dir + 'player1.png')
         cls.player1_img = pygame.transform.scale(cls.player1_img, (dim_celula, dim_celula))
-        cls.player2_img = pygame.image.load(images_dir + 'player2_tmp.png')
+        cls.player2_img = pygame.image.load(images_dir + 'player2.png')
         cls.player2_img = pygame.transform.scale(cls.player2_img, (dim_celula, dim_celula))
         cls.wall_img = pygame.image.load(images_dir + 'wall.jpeg')
         cls.wall_img = pygame.transform.scale(cls.wall_img, (dim_celula, dim_celula))

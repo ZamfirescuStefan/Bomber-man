@@ -49,11 +49,11 @@ def read_map():
             line = line[:-1]
         mat.append([])
         for y in range(len(line)):
-            if line[y] == 'p':
+            if line[y] == Joc.SHIELD:
                 protecion_list.append((x, y))
-            if line[y] == '1':
+            if line[y] == Joc.JMIN:
                 player_pos = (x, y)
-            if line[y] == '2':
+            if line[y] == Joc.JMAX:
                 pc_pos = (x, y)
             mat[-1].append(line[y])
         line = fin.readline()
@@ -107,7 +107,28 @@ def bomb_explode(stare: Stare, line_bomb, column_bomb):
     stare.end_zone = list(set2)
 
 
+def checkAlive(current_state, linie, coloana):
+    if (linie, coloana) in current_state.end_zone:
+
+        if current_state.current_player.nums_of_shields > 0:
+            current_state.current_player.nums_of_shields -= 1
+        else:
+            current_state.current_player.lost = True
+
+
 def main():
+    k = 1
+    # System variables
+    Joc.PLAYER1 = '1'
+    Joc.PLAYER2 = '2'
+    Joc.GOL = ' '
+    Joc.WALL = '#'
+    Joc.SHIELD = 'p'
+    Joc.IBOMB = 'b'
+    Joc.ABOMB = 'B'
+    Joc.TIME_AUTO_BOMB = k
+    # End
+
     parse_args()
     mat, player_pos, pc_pos, protection_list = read_map()
     num_of_colons = len(mat[-1])
@@ -123,32 +144,20 @@ def main():
 
     Joc(NR_LINII=num_of_lines, NR_COLOANE=num_of_colons)
 
-    k = 1
-    # System variables
-    Joc.PLAYER1 = '1'
-    Joc.PLAYER2 = '2'
-    Joc.GOL = ' '
-    Joc.WALL = '#'
-    Joc.SHIELD = 'p'
-    Joc.IBOMB = 'b'
-    Joc.ABOMB = 'B'
-    Joc.TIME_AUTO_BOMB = k
-    # End
-
     Joc.JMAX = Player(Joc.PLAYER2, k)
     Joc.JMIN = Player(Joc.PLAYER1, k)
 
     current_state = Stare(mat, Joc.JMIN, 2)
+    current_p = current_state.current_player
     Joc.deseneaza_grid(mat)
+    global marked, bomb_down
     marked = False
     bomb_down = False
-    player1_win = 0  # -1 win the computer 0 tie 1 win the player
-    player2_win = 0
-    while True and player1_win == 0 and player2_win == 0:
 
-        # if current_state.current_player == Joc.JMIN:
-        if True:
-            msg = f"Player {current_state.current_player.sign}"
+    while current_p.lost is False and Joc.jucator_opus(current_p).lost is False:
+
+        if current_p == Joc.JMIN:
+            msg = f"Player {current_p.sign}"
             Joc.update_header(msg)
             for event in pygame.event.get():
 
@@ -166,7 +175,7 @@ def main():
                             coloana = np % Stare.NR_COLOANE
 
                             # mark the player to move press left click
-                            if current_state.matr[linie][coloana] == current_state.current_player.sign and mouse_button[
+                            if current_state.matr[linie][coloana] == current_p.sign and mouse_button[
                                 0] is True:
                                 if marked and marked[0] == linie and marked[1] == coloana:
                                     marked = False
@@ -176,7 +185,7 @@ def main():
                                     Joc.deseneaza_grid(current_state.matr, np)
 
                             # right click to put a bomb down
-                            if current_state.matr[linie][coloana] == current_state.current_player.sign and mouse_button[
+                            if current_state.matr[linie][coloana] == current_p.sign and mouse_button[
                                 2] is True:
                                 if marked and marked[0] == linie and marked[1] == coloana:
                                     marked = False
@@ -190,53 +199,65 @@ def main():
                             if (current_state.matr[linie][coloana] == Joc.GOL or
                                 current_state.matr[linie][coloana] == Joc.SHIELD) and marked and \
                                     checkValidMove(marked[0], marked[1], linie, coloana):
-                                # automatic placement bomb or you want to do it or just let an empty space behind him
-                                if current_state.current_player.bomb_auto_placing == 0 or bomb_down is True:
-                                    current_state.matr[marked[0]][marked[1]] = Joc.IBOMB
-                                    if current_state.current_player.inactive_bomb is not None:
-                                        current_state.matr[current_state.current_player.inactive_bomb[0]][current_state.current_player.inactive_bomb[1]] = Joc.ABOMB
-                                        bomb_explode(current_state, current_state.current_player.inactive_bomb[0], current_state.current_player.inactive_bomb[1])
-                                    current_state.current_player.inactive_bomb = (marked[0], marked[1])
 
-                                    current_state.current_player.list_of_bombs.append(marked)
-                                    current_state.current_player.bomb_auto_placing = Joc.TIME_AUTO_BOMB + 1
+                                # check if you enter in a dangerous zone
+                                checkAlive(current_state, linie, coloana)
+
+                                if current_state.matr[linie][coloana] == Joc.SHIELD:
+                                    current_p.nums_of_shields += 1
+
+                                # automatic placement bomb or you want to do it or just let an empty space behind him
+                                if current_p.bomb_auto_placing == 0 or bomb_down is True:
+                                    current_state.matr[marked[0]][marked[1]] = Joc.IBOMB
+                                    if current_p.inactive_bomb is not None:
+                                        current_state.matr[current_p.inactive_bomb[0]][
+                                            current_p.inactive_bomb[1]] = Joc.ABOMB
+                                        bomb_explode(current_state, current_p.inactive_bomb[0],
+                                                     current_p.inactive_bomb[1])
+                                    current_p.inactive_bomb = (marked[0], marked[1])
+
+                                    current_p.list_of_bombs.append(marked)
+                                    current_p.bomb_auto_placing = Joc.TIME_AUTO_BOMB + 1
                                     bomb_down = False
                                 else:
                                     current_state.matr[marked[0]][marked[1]] = Joc.GOL
                                 marked = False
-                                if (linie, coloana) in current_state.end_zone:
-                                    player1_win = -1
 
-                                current_state.matr[linie][coloana] = current_state.current_player.sign
+                                current_state.matr[linie][coloana] = current_p.sign
                                 Joc.deseneaza_grid(current_state.matr)
-                                if current_state.matr[linie][coloana] == Joc.SHIELD:
-                                    current_state.current_player.nums_of_shields += 1
-                                current_state.current_player.bomb_auto_placing -= 1
-                                if current_state.current_player.bomb_auto_placing < 0:
-                                    current_state.current_player.bomb_auto_placing = k
 
-                                current_state.current_player = Joc.jucator_opus(current_state.current_player)
+                                current_p.bomb_auto_placing -= 1
+                                if current_p.bomb_auto_placing < 0:
+                                    current_p.bomb_auto_placing = Joc.TIME_AUTO_BOMB
 
+                                current_p = Joc.jucator_opus(current_p)
+
+                            # activate a bomb
                             if current_state.matr[linie][coloana] == Joc.IBOMB:
-                                if (linie, coloana) in current_state.current_player.list_of_bombs:
+                                if (linie, coloana) in current_p.list_of_bombs:
                                     current_state.matr[linie][coloana] = Joc.ABOMB
-                                    if (linie, coloana) == current_state.current_player.inactive_bomb:
-                                        current_state.current_player.inactive_bomb = None
+                                    if (linie, coloana) == current_p.inactive_bomb:
+                                        current_p.inactive_bomb = None
                                     Joc.deseneaza_grid(current_state.matr)
                                     bomb_explode(current_state, linie, coloana)
 
-                            # if current_state.tabla_joc.matr[linie][coloana] == Joc.ABOMB:
-                            #     if (linie, coloana) in Joc.JMIN.list_of_bombs:
-                            #         current_state.tabla_joc.matr[linie][coloana] = Joc.IBOMB
+
         else:
-            header_message = "Player 2 (Computer)"
+            print("This is the computer round")
+            header_message = "Computer turn"
             Joc.update_header(header_message)
-            time.sleep(0.5)
-            current_state.current_player = Joc.jucator_opus(current_state.current_player)
+            time.sleep(1)
+            current_p = Joc.jucator_opus(current_p)
 
+    # doesn't matter which is who
+    player_1 = current_p
+    player_2 = Joc.jucator_opus(current_p)
 
-
-    message = "You win!" if player2_win == -1 else "You lose!"
+    if player_1 is True and player_2 is True:
+        message = "Tie"
+    else:
+        win_player = player_1.sign if player_2 is True else player_2.sign
+        message = f"Player {win_player} win! "
 
     while True:
         for event in pygame.event.get():
