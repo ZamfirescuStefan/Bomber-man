@@ -87,7 +87,7 @@ class Joc:
         elif t_final == 'remiza':
             return 0
         else:
-            return (self.linii_deschise(self.__class__.JMAX) - self.linii_deschise(self.__class__.JMIN))
+            return self.linii_deschise(self.__class__.JMAX) - self.linii_deschise(self.__class__.JMIN)
 
     def sirAfisare(self):
         sir = "  |"

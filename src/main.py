@@ -51,9 +51,9 @@ def read_map():
         for y in range(len(line)):
             if line[y] == Joc.SHIELD:
                 protecion_list.append((x, y))
-            if line[y] == Joc.JMIN:
+            if line[y] == Joc.PLAYER1:
                 player_pos = (x, y)
-            if line[y] == Joc.JMAX:
+            if line[y] == Joc.PLAYER2:
                 pc_pos = (x, y)
             mat[-1].append(line[y])
         line = fin.readline()
@@ -61,13 +61,6 @@ def read_map():
 
     fin.close()
     return mat, player_pos, pc_pos, protecion_list
-
-
-def checkValidMove(line_player, column_player, new_line, new_column):
-    if abs(line_player - new_line) + abs(column_player - new_column) <= 1:
-        return True
-    else:
-        return False
 
 
 def bomb_explode(stare: Stare, line_bomb, column_bomb):
@@ -107,13 +100,16 @@ def bomb_explode(stare: Stare, line_bomb, column_bomb):
     stare.end_zone = list(set2)
 
 
-def checkAlive(current_state, linie, coloana):
+def checkAlive(current_state, current_p, linie, coloana):
+    print(f"In checkAlive {current_p.sign}")
     if (linie, coloana) in current_state.end_zone:
 
         if current_state.current_player.nums_of_shields > 0:
             current_state.current_player.nums_of_shields -= 1
         else:
             current_state.current_player.lost = True
+            return False
+    return True
 
 
 def main():
@@ -144,19 +140,20 @@ def main():
 
     Joc(NR_LINII=num_of_lines, NR_COLOANE=num_of_colons)
 
-    Joc.JMAX = Player(Joc.PLAYER2, k)
-    Joc.JMIN = Player(Joc.PLAYER1, k)
+    jmax = Player(Joc.PLAYER2, k)
+    jmin = Player(Joc.PLAYER1, k)
 
-    current_state = Stare(mat, Joc.JMIN, 2)
+    current_state = Stare(mat, jmin, jmin, jmax, 2)
     current_p = current_state.current_player
     Joc.deseneaza_grid(mat)
     global marked, bomb_down
     marked = False
     bomb_down = False
 
-    while current_p.lost is False and Joc.jucator_opus(current_p).lost is False:
+    while current_state.JMAX.lost is False and current_state.JMIN.lost is False:
 
-        if current_p == Joc.JMIN:
+        # if current_p.sign == Joc.PLAYER1:
+        if True:
             msg = f"Player {current_p.sign}"
             Joc.update_header(msg)
             for event in pygame.event.get():
@@ -198,10 +195,17 @@ def main():
 
                             if (current_state.matr[linie][coloana] == Joc.GOL or
                                 current_state.matr[linie][coloana] == Joc.SHIELD) and marked and \
-                                    checkValidMove(marked[0], marked[1], linie, coloana):
+                                    Stare.checkValidMove(marked[0], marked[1], linie, coloana):
 
                                 # check if you enter in a dangerous zone
-                                checkAlive(current_state, linie, coloana)
+                                print(f"Before {current_p.sign}")
+                                # checkAlive(current_state, current_p, linie, coloana)
+                                if (linie, coloana) in current_state.end_zone:
+
+                                    if current_p.nums_of_shields > 0:
+                                        current_p.nums_of_shields -= 1
+                                    else:
+                                        current_p.lost = True
 
                                 if current_state.matr[linie][coloana] == Joc.SHIELD:
                                     current_p.nums_of_shields += 1
@@ -230,8 +234,9 @@ def main():
                                 if current_p.bomb_auto_placing < 0:
                                     current_p.bomb_auto_placing = Joc.TIME_AUTO_BOMB
 
-                                current_p = Joc.jucator_opus(current_p)
-
+                                # print(f"Before switch {current_p.sign}")
+                                current_p = current_state.jucator_opus(current_p)
+                                # print(f"After switch {current_p.sign}")
                             # activate a bomb
                             if current_state.matr[linie][coloana] == Joc.IBOMB:
                                 if (linie, coloana) in current_p.list_of_bombs:
@@ -240,24 +245,29 @@ def main():
                                         current_p.inactive_bomb = None
                                     Joc.deseneaza_grid(current_state.matr)
                                     bomb_explode(current_state, linie, coloana)
-
-
         else:
             print("This is the computer round")
             header_message = "Computer turn"
             Joc.update_header(header_message)
+            # current_state.current_player.inactive_bomb = (2, 2)
+            # current_state.mutari(Joc.PLAYER2)
+            # current_state.matr = current_state.mutari_posibile[0]
+            # Joc.deseneaza_grid(current_state.matr)
+            # for mats in current_state.mutari_posibile:
+            #     for list in mats:
+            #         print("".join(list))
+
             time.sleep(1)
-            current_p = Joc.jucator_opus(current_p)
+            current_p = current_state.jucator_opus(current_p)
 
     # doesn't matter which is who
-    player_1 = current_p
-    player_2 = Joc.jucator_opus(current_p)
 
-    if player_1 is True and player_2 is True:
-        message = "Tie"
-    else:
-        win_player = player_1.sign if player_2 is True else player_2.sign
-        message = f"Player {win_player} win! "
+
+    # if current_state.JMIN.lost is True and current_state.JMAX.lost is True:
+    #     message = "Tie"
+    # else:
+    win_player = Joc.PLAYER1 if current_state.JMAX.lost is True else Joc.PLAYER2
+    message = f"Player {win_player} win! "
 
     while True:
         for event in pygame.event.get():

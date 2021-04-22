@@ -38,8 +38,6 @@ class Joc:
     """
     TIME_AUTO_BOMB = None
     display = None
-    JMIN = None
-    JMAX = None
     celuleGrid = None
     dim_celula = None
 
