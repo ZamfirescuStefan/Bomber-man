@@ -70,7 +70,7 @@ class Joc:
         # self.__class__.scor_maxim = sc_randuri + sc_coloane + sc_diagonale
 
     @classmethod
-    def deseneaza_grid(cls, matr, index=None, click=0):  # tabla de exemplu este ["#","x","#","0",......] click-ul stang
+    def deseneaza_grid(cls, matr, player_sign, index=None, click=0):  # tabla de exemplu este ["#","x","#","0",......] click-ul stang
         NR_COLOANE = len(matr[0])
         NR_LINII = len(matr)
 
@@ -80,13 +80,25 @@ class Joc:
             background_cell_color = Consts.white
 
             if click == 0:
-                if ind == index:
-                    cls.player1_img.set_alpha(500)  # make bigger opacity
+                if player_sign == Joc.PLAYER1:
+                    if ind == index:
+                        cls.player1_img.set_alpha(500)  # make bigger opacity
+                    else:
+                        cls.player1_img.set_alpha(80)
+                elif player_sign == Joc.PLAYER2:
+                    if ind == index:
+                        cls.player2_img.set_alpha(500)  # make bigger opacity
+                    else:
+                        cls.player2_img.set_alpha(80)
                 else:
+                    cls.player2_img.set_alpha(80)
                     cls.player1_img.set_alpha(80)
-            if click == 1:
+            if click == 1:  # right click
                 if ind == index:
-                    cls.player1_img.set_alpha(500)
+                    if player_sign == Joc.PLAYER1:
+                        cls.player1_img.set_alpha(500)
+                    if player_sign == Joc.PLAYER2:
+                        cls.player2_img.set_alpha(500)
                     background_cell_color = Consts.red
                 else:
                     background_cell_color = Consts.white
@@ -115,9 +127,6 @@ class Joc:
         cls.display.blit(Header.text, Header.text_rect)
         pygame.display.update()
 
-    @classmethod
-    def jucator_opus(cls, jucator):
-        return cls.JMAX if jucator == cls.JMIN else cls.JMIN
 
     @classmethod
     def initializeaza(cls, display, NR_LINII=6, NR_COLOANE=7, dim_celula=100):

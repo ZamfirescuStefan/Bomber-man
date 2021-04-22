@@ -145,7 +145,7 @@ def main():
 
     current_state = Stare(mat, jmin, jmin, jmax, 2)
     current_p = current_state.current_player
-    Joc.deseneaza_grid(mat)
+    Joc.deseneaza_grid(mat, -1)
     global marked, bomb_down
     marked = False
     bomb_down = False
@@ -176,10 +176,10 @@ def main():
                                 0] is True:
                                 if marked and marked[0] == linie and marked[1] == coloana:
                                     marked = False
-                                    Joc.deseneaza_grid(current_state.matr)
+                                    Joc.deseneaza_grid(current_state.matr, current_p.sign)
                                 else:
                                     marked = (linie, coloana)
-                                    Joc.deseneaza_grid(current_state.matr, np)
+                                    Joc.deseneaza_grid(current_state.matr, current_p.sign, np)
 
                             # right click to put a bomb down
                             if current_state.matr[linie][coloana] == current_p.sign and mouse_button[
@@ -187,11 +187,11 @@ def main():
                                 if marked and marked[0] == linie and marked[1] == coloana:
                                     marked = False
                                     bomb_down = False
-                                    Joc.deseneaza_grid(current_state.matr, -1, 1)
+                                    Joc.deseneaza_grid(current_state.matr, current_p.sign, -1, 1)
                                 else:
                                     bomb_down = True
                                     marked = (linie, coloana)
-                                    Joc.deseneaza_grid(current_state.matr, np, 1)
+                                    Joc.deseneaza_grid(current_state.matr, current_p.sign, np, 1)
 
                             if (current_state.matr[linie][coloana] == Joc.GOL or
                                 current_state.matr[linie][coloana] == Joc.SHIELD) and marked and \
@@ -228,7 +228,7 @@ def main():
                                 marked = False
 
                                 current_state.matr[linie][coloana] = current_p.sign
-                                Joc.deseneaza_grid(current_state.matr)
+                                Joc.deseneaza_grid(current_state.matr, current_p.sign)
 
                                 current_p.bomb_auto_placing -= 1
                                 if current_p.bomb_auto_placing < 0:
@@ -243,7 +243,7 @@ def main():
                                     current_state.matr[linie][coloana] = Joc.ABOMB
                                     if (linie, coloana) == current_p.inactive_bomb:
                                         current_p.inactive_bomb = None
-                                    Joc.deseneaza_grid(current_state.matr)
+                                    Joc.deseneaza_grid(current_state.matr, current_p.sign)
                                     bomb_explode(current_state, linie, coloana)
         else:
             print("This is the computer round")
