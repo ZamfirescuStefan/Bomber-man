@@ -5,17 +5,58 @@ from UserInterface import Joc
 
 class Player:
 
-    def __init__(self, sign, k):
+    def __init__(self, sign, k, pos):
         self.sign = sign
         self.bomb_auto_placing = k
         self.list_of_bombs = []
         self.nums_of_shields = 0
         self.inactive_bomb = None  # it can be a single inactive bomb
         self.lost = False
+        self.pos = pos
 
     def __str__(self):
         print(self.list_of_bombs)
         return f"The sign use for player {self.sign}, number of shields {self.nums_of_shields}, placing bomb time {self.bomb_auto_placing} "
+
+
+def bomb_explode(stare, line_bomb, column_bomb, time=0):  # time = 0 means now, time = 1 means next step will explode
+    up = [line_bomb - 1, column_bomb]
+    cell_explode = []
+    while stare.matr[up[0]][up[1]] != Joc.WALL:
+        if up[0] > 0:
+            cell_explode.append((up[0], up[1]))
+            up[0] -= 1
+        else:
+            break
+
+    down = [line_bomb + 1, column_bomb]
+    while stare.matr[down[0]][down[1]] != Joc.WALL:
+        if down[0] < len(stare.matr) - 1:
+            cell_explode.append((down[0], down[1]))
+            down[0] += 1
+        else:
+            break
+
+    right = [line_bomb, column_bomb + 1]
+    while stare.matr[right[0]][right[1]] != Joc.WALL:
+        if right[1] < len(stare.matr[-1]) - 1:
+            cell_explode.append((right[0], right[1]))
+            right[1] += 1
+        else:
+            break
+
+    left = [line_bomb, column_bomb - 1]
+    while stare.matr[left[0]][left[1]] != Joc.WALL:
+        if left[1] > 0:
+            cell_explode.append((left[0], left[1]))
+            left[1] -= 1
+        else:
+            break
+    set2 = set(cell_explode).union(set(stare.end_zone))
+    if time == 0:
+        stare.end_zone = list(set2)
+    else:
+        stare.next_step_explode = set(cell_explode)
 
 
 class Stare:
@@ -30,6 +71,7 @@ class Stare:
 
     def __init__(self, mat, j_curent, JMIN, JMAX, adancime, parinte=None, scor=None):
         self.end_zone = []
+        self.next_step_explode = []
         self.matr = mat
         self.__class__.NR_LINII = len(mat)
         self.__class__.NR_COLOANE = len(mat[0])
@@ -53,7 +95,7 @@ class Stare:
     #     juc_opus = Joc.jucator_opus(self.current_player)
     #     l_stari_mutari = [Stare(mutare, juc_opus, self.adancime - 1, parinte=self) for mutare in l_mutari]
     #
-        # return l_stari_mutari
+    # return l_stari_mutari
 
     def parcurgere(self, directie):
         um = self.ultima_mutare  # (l,c)
@@ -68,23 +110,34 @@ class Stare:
             nr_mutari += 1
         return nr_mutari
 
-    def final(self):
-        if not self.ultima_mutare:  # daca e inainte de prima mutare
-            return False
-        directii = [[(0, 1), (0, -1)], [(1, 1), (-1, -1)], [(1, -1), (-1, 1)], [(1, 0), (-1, 0)]]
-        um = self.ultima_mutare
-        rez = False
-        for per_dir in directii:
-            len_culoare = self.parcurgere(per_dir[0]) + self.parcurgere(per_dir[1]) + 1  # +1 pt chiar ultima mutare
-            if len_culoare >= 4:
-                rez = self.matr[um[0]][um[1]]
+    def check_final(self):
+        if self.JMIN.pos in self.end_zone:
+            if self.JMIN.nums_of_shields > 0:
+                self.JMIN.nums_of_shields -= 1
+            else:
+                self.JMIN.lost = True
+        elif self.JMAX.pos in self.end_zone:
+            if self.JMAX.nums_of_shields > 0:
+                self.JMAX.nums_of_shields -= 1
+            else:
+                self.JMAX.lost = True
 
-        if (rez):
-            return rez
-        elif all(self.__class__.GOL not in x for x in self.matr):
-            return 'remiza'
+        if self.JMIN.lost is True and self.JMAX.lost is True:
+            return 0
+        elif self.JMIN.lost is True:
+            return 2
+        elif self.JMAX.lost is True:
+            return 1
         else:
-            return False
+            return -1
+
+    def has_valid_moves(self, linie, coloana):
+        directions = [(0, +1), (0, -1), (1, 0), (-1, 0)]
+        has_moves = False
+        for elem in directions:
+            if self.is_valid_move(self.matr, (linie, coloana), elem):
+                has_moves = True
+        return has_moves
 
     def jucator_opus(self, jucator):
         self.current_player = self.JMAX if self.current_player == self.JMIN else self.JMIN
@@ -106,48 +159,57 @@ class Stare:
         else:
             return False
 
-    def mutari(self, jucator):
-        l_mutari = []
+    def mutari(self, player_sign):
+        l_stari = []
         directions = [(0, +1), (0, -1), (1, 0), (-1, 0)]
         player_pos = (0, 0)
 
-        for index in range(len(self.matr)):
-            for index2 in range(len(self.matr[0])):
-                if self.matr[index][index2] == jucator:
-                    player_pos = (index, index2)
-        if player_pos == (0, 0):
-            print("This map doesn't have this player sign")
-            exit()
-
-        jucator_cpy = copy.deepcopy(self.current_player)
-
+        player_pos = self.current_player.pos
         for elem in directions:
-            matr_cpy = copy.deepcopy(self.matr)
-            if self.is_valid_move(matr_cpy, player_pos, elem):
-                matr_cpy[player_pos[0]][player_pos[1]] = Joc.GOL
-                matr_cpy[player_pos[0] + elem[0]][player_pos[1] + elem[1]] = jucator
-                l_mutari.append(matr_cpy)
-                if jucator_cpy.bomb_auto_placing == 0:
-                    matr_cpy[player_pos[0]][player_pos[1]] = Joc.IBOMB
-                    if jucator_cpy.inactive_bomb is not None:
-                        matr_cpy[jucator_cpy.inactive_bomb[0]][jucator_cpy.inactive_bomb[1]] = Joc.ABOMB
-                    jucator_cpy.inactive_bomb = (player_pos[0], player_pos[1])
-                    l_mutari.append(matr_cpy)
+            stare_cpy = copy.deepcopy(self)
+            if self.is_valid_move(stare_cpy.matr, player_pos, elem):  # default movements without bombing
 
-        l_mutari_cpy = copy.deepcopy(l_mutari)
-        for mats in l_mutari_cpy:
-            matr_cpy = copy.deepcopy(mats)
-            if jucator_cpy.inactive_bomb is not None:
-                matr_cpy[jucator_cpy.inactive_bomb[0]][jucator_cpy.inactive_bomb[1]] = Joc.ABOMB
-            matr_cpy[player_pos[0]][player_pos[1]] = Joc.IBOMB
-            jucator_cpy.inactive_bomb = (player_pos[0], player_pos[1])
-            l_mutari.append(mats)
+                if stare_cpy.current_player.bomb_auto_placing > 0:
+                    stare_cpy.matr[player_pos[0]][player_pos[1]] = Joc.GOL
+                    stare_cpy.matr[player_pos[0] + elem[0]][player_pos[1] + elem[1]] = player_sign
+                    stare_cpy.current_player.pos = (player_pos[0] + elem[0], player_pos[1] + elem[1])
+                    stare_cpy.current_player.bomb_auto_placing -= 1
+                    l_stari.append(stare_cpy)
 
-        matr_cpy = copy.deepcopy(self.matr)
-        if jucator_cpy.inactive_bomb is not None:
-            matr_cpy[jucator_cpy.inactive_bomb[0]][jucator_cpy.inactive_bomb[1]] = Joc.ABOMB
+                    # add a version with bomb behind
+                    stare_cpy_with_bomb = copy.deepcopy(stare_cpy)
+                    stare_cpy_with_bomb.matr[player_pos[0]][player_pos[1]] = Joc.IBOMB
+                    if stare_cpy_with_bomb.current_player.inactive_bomb is not None:
+                        stare_cpy_with_bomb.matr[stare_cpy.current_player.inactive_bomb[0]][
+                            stare_cpy_with_bomb.current_player.inactive_bomb[1]] = Joc.ABOMB
+                        bomb_explode(stare_cpy_with_bomb, stare_cpy.current_player.inactive_bomb[0],
+                                     stare_cpy.current_player.inactive_bomb[1], 1)
+                    stare_cpy_with_bomb.current_player.inactive_bomb = (player_pos[0], player_pos[1])
+                    stare_cpy_with_bomb.current_player.bomb_auto_placing = Joc.TIME_AUTO_BOMB
+                    l_stari.append(stare_cpy_with_bomb)
+                else:
+                    stare_cpy.matr[player_pos[0]][player_pos[1]] = Joc.IBOMB
+                    stare_cpy.matr[player_pos[0] + elem[0]][player_pos[1] + elem[1]] = player_sign
+                    stare_cpy.current_player.pos = (player_pos[0] + elem[0], player_pos[1] + elem[1])
+                    if stare_cpy.current_player.inactive_bomb is not None:
+                        stare_cpy.matr[stare_cpy.current_player.inactive_bomb[0]][
+                            stare_cpy.current_player.inactive_bomb[1]] = Joc.ABOMB
+                        bomb_explode(stare_cpy, stare_cpy.current_player.inactive_bomb[0],
+                                     stare_cpy.current_player.inactive_bomb[1], 1)
+                        print(
+                            f"Computer end-zones position bomb: ({stare_cpy.current_player.inactive_bomb[0]}, {stare_cpy.current_player.inactive_bomb[1]})")
+                        print(stare_cpy.end_zone)
+                    stare_cpy.current_player.inactive_bomb = (player_pos[0], player_pos[1])
+                    stare_cpy.current_player.bomb_auto_placing = Joc.TIME_AUTO_BOMB
+                    l_stari.append(stare_cpy)
 
-        self.mutari_posibile = l_mutari
+        if self.current_player.inactive_bomb is not None:
+            stare_cpy = copy.deepcopy(self)
+            stare_cpy.matr[stare_cpy.current_player.inactive_bomb[0]][stare_cpy.current_player.inactive_bomb[1]] = Joc.ABOMB
+            bomb_explode(stare_cpy, stare_cpy.current_player.inactive_bomb[0], stare_cpy.current_player.inactive_bomb[1])
+            stare_cpy.current_player.inactive_bomb = None
+            l_stari.append(stare_cpy)
+        self.mutari_posibile = l_stari
 
     # linie deschisa inseamna linie pe care jucatorul mai poate forma o configuratie castigatoare
     # practic e o linie fara simboluri ale jucatorului opus
@@ -183,7 +245,7 @@ class Stare:
         return linii
 
     def estimeaza_scor(self, adancime):
-        t_final = self.final()
+        t_final = self.check_final()
         # if (adancime==0):
         if t_final == self.__class__.JMAX:
             return self.__class__.scor_maxim + adancime

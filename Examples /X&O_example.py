@@ -42,7 +42,7 @@ class Joc:
                or elem_identice(self.matr[2:9:3])
                or elem_identice(self.matr[0:9:4])
                or elem_identice(self.matr[2:8:2]))
-        if (rez):
+        if rez:
             return rez
         elif Joc.GOL not in self.matr:
             return 'remiza'
@@ -152,7 +152,7 @@ class Stare:
 
 def min_max(stare):
     # daca sunt la o frunza in arborele minimax sau la o stare finala
-    if stare.adancime == 0 or stare.tabla_joc.final():
+    if stare.adancime == 0 or stare.tabla_joc.check_final():
         stare.estimare = stare.tabla_joc.estimeaza_scor(stare.adancime)
         return stare
 
@@ -175,7 +175,7 @@ def min_max(stare):
 
 
 def alpha_beta(alpha, beta, stare):
-    if stare.adancime == 0 or stare.tabla_joc.final():
+    if stare.adancime == 0 or stare.tabla_joc.check_final():
         stare.estimare = stare.tabla_joc.estimeaza_scor(stare.adancime)
         return stare
 
@@ -220,9 +220,9 @@ def alpha_beta(alpha, beta, stare):
 
 
 def afis_daca_final(stare_curenta):
-    final = stare_curenta.tabla_joc.final()  # metoda final() returneaza "remiza" sau castigatorul ("x" sau "0") sau False daca nu e stare finala
-    if (final):
-        if (final == "remiza"):
+    final = stare_curenta.tabla_joc.check_final()  # metoda final() returneaza "remiza" sau castigatorul ("x" sau "0") sau False daca nu e stare finala
+    if final:
+        if final == "remiza":
             print("Remiza!")
         else:
             print("A castigat " + final)
