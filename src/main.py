@@ -236,7 +236,7 @@ def main():
 
                                 # print(f"Before switch {current_state.current_player.sign}")
                                 # current_p = current_state.jucator_opus(current_p)
-                                current_state.jucator_opus(current_p)
+                                current_state.jucator_opus(current_state.current_player)
                                 # print(f"After switch {current_state.current_player.sign}")
                             # activate a bomb
                             if current_state.matr[linie][coloana] == Joc.IBOMB:
