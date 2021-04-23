@@ -87,7 +87,8 @@ class Stare:
             return False
 
     def jucator_opus(self, jucator):
-        return self.JMAX if jucator == self.JMIN else self.JMIN
+        self.current_player = self.JMAX if self.current_player == self.JMIN else self.JMIN
+        # return self.JMAX if jucator == self.JMIN else self.JMIN
 
     @classmethod
     def checkValidMove(cls, line_player, column_player, new_line, new_column):
@@ -98,7 +99,7 @@ class Stare:
 
     def is_valid_move(self, mat, pos, direction):
         new_x, new_y = (pos[0] + direction[0], pos[1] + direction[1])
-        invalid_character = [Joc.WALL, Joc.ABOMB, Joc.IBOMB, Joc.JMIN, Joc.JMAX]
+        invalid_character = [Joc.WALL, Joc.ABOMB, Joc.IBOMB, Joc.PLAYER1, Joc.PLAYER2]
 
         if mat[new_x][new_y] not in invalid_character:
             return True
@@ -109,21 +110,22 @@ class Stare:
         l_mutari = []
         directions = [(0, +1), (0, -1), (1, 0), (-1, 0)]
         player_pos = (0, 0)
-        jucator_cpy = copy.deepcopy(jucator)
 
         for index in range(len(self.matr)):
             for index2 in range(len(self.matr[0])):
-                if self.matr[index][index2] == jucator_cpy.sign:
+                if self.matr[index][index2] == jucator:
                     player_pos = (index, index2)
         if player_pos == (0, 0):
             print("This map doesn't have this player sign")
             exit()
 
+        jucator_cpy = copy.deepcopy(self.current_player)
+
         for elem in directions:
             matr_cpy = copy.deepcopy(self.matr)
             if self.is_valid_move(matr_cpy, player_pos, elem):
                 matr_cpy[player_pos[0]][player_pos[1]] = Joc.GOL
-                matr_cpy[player_pos[0] + elem[0]][player_pos[1] + elem[1]] = jucator_cpy.sign
+                matr_cpy[player_pos[0] + elem[0]][player_pos[1] + elem[1]] = jucator
                 l_mutari.append(matr_cpy)
                 if jucator_cpy.bomb_auto_placing == 0:
                     matr_cpy[player_pos[0]][player_pos[1]] = Joc.IBOMB

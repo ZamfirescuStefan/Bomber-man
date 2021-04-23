@@ -3,11 +3,11 @@ import copy
 import pygame
 import sys
 
-ADANCIME_MAX = 4
+ADANCIME_MAX = 5
 
 
 def elem_identice(lista):
-    if (len(set(lista)) == 1):
+    if len(set(lista)) == 1:
         return lista[0] if lista[0] != Joc.GOL else False
     return False
 
@@ -258,7 +258,7 @@ def min_max(stare):
     # aplic algoritmul minimax pe toate mutarile posibile (calculand astfel subarborii lor)
     mutari_scor = [min_max(mutare) for mutare in stare.mutari_posibile]
 
-    if stare.current_player == Joc.JMAX:
+    if stare.j_curent == Joc.JMAX:
         # daca jucatorul e JMAX aleg starea-fiica cu scorul maxim
         stare.stare_aleasa = max(mutari_scor, key=lambda x: x.scor)
     else:
@@ -278,7 +278,7 @@ def alpha_beta(alpha, beta, stare):
 
     stare.mutari_posibile = stare.mutari()
 
-    if stare.current_player == Joc.JMAX:
+    if stare.j_curent == Joc.JMAX:
         scor_curent = float('-inf')
 
         for mutare in stare.mutari_posibile:
@@ -293,7 +293,7 @@ def alpha_beta(alpha, beta, stare):
                 if alpha >= beta:
                     break
 
-    elif stare.current_player == Joc.JMIN:
+    elif stare.j_curent == Joc.JMIN:
         scor_curent = float('inf')
 
         for mutare in stare.mutari_posibile:
@@ -450,7 +450,7 @@ def main():
     Joc.initializeaza(ecran, NR_LINII=nl, NR_COLOANE=nc, dim_celula=w)
 
     # initializare tabla
-    tabla_curenta = Joc(NR_LINII=6, NR_COLOANE=7)
+    tabla_curenta = Joc(NR_LINII=6, NR_COLOANE=7);
     Joc.JMIN, tip_algoritm = deseneaza_alegeri(ecran, tabla_curenta)
     print(Joc.JMIN, tip_algoritm)
 
@@ -465,7 +465,7 @@ def main():
     tabla_curenta.deseneaza_grid()
     while True:
 
-        if stare_curenta.j_curent == Joc.JMIN:
+        if (stare_curenta.j_curent == Joc.JMIN):
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -507,7 +507,7 @@ def main():
                                 stare_curenta.tabla_joc.deseneaza_grid(coloana_marcaj=coloana)
                                 # testez daca jocul a ajuns intr-o stare finala
                                 # si afisez un mesaj corespunzator in caz ca da
-                                if afis_daca_final(stare_curenta):
+                                if (afis_daca_final(stare_curenta)):
                                     break
 
                                 # S-a realizat o mutare. Schimb jucatorul cu cel opus

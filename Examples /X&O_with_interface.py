@@ -6,7 +6,7 @@ ADANCIME_MAX = 6
 
 
 def elem_identice(lista):
-    if all(elem == lista[0] for elem in lista[1:]):
+    if (all(elem == lista[0] for elem in lista[1:])):
         return lista[0] if lista[0] != Joc.GOL else False
     return False
 
@@ -178,7 +178,7 @@ def min_max(stare):
     # aplic algoritmul minimax pe toate mutarile posibile (calculand astfel subarborii lor)
     mutariCuEstimare = [min_max(mutare) for mutare in stare.mutari_posibile]
 
-    if stare.current_player == Joc.JMAX:
+    if stare.j_curent == Joc.JMAX:
         # daca jucatorul e JMAX aleg starea-fiica cu estimarea maxima
         stare.stare_aleasa = max(mutariCuEstimare, key=lambda x: x.estimare)
     else:
@@ -198,7 +198,7 @@ def alpha_beta(alpha, beta, stare):
 
     stare.mutari_posibile = stare.mutari()
 
-    if stare.current_player == Joc.JMAX:
+    if stare.j_curent == Joc.JMAX:
         estimare_curenta = float('-inf')
 
         for mutare in stare.mutari_posibile:
@@ -213,7 +213,7 @@ def alpha_beta(alpha, beta, stare):
                 if alpha >= beta:
                     break
 
-    elif stare.current_player == Joc.JMIN:
+    elif stare.j_curent == Joc.JMIN:
         estimare_curenta = float('inf')
 
         for mutare in stare.mutari_posibile:
@@ -266,7 +266,7 @@ def main():
     Joc.JMAX = '0' if Joc.JMIN == 'x' else 'x'
 
     # initializare tabla
-    tabla_curenta = Joc()
+    tabla_curenta = Joc();
     print("Tabla initiala")
     print(str(tabla_curenta))
 

@@ -84,15 +84,15 @@ class Joc:
                     if ind == index:
                         cls.player1_img.set_alpha(500)  # make bigger opacity
                     else:
-                        cls.player1_img.set_alpha(80)
+                        cls.player1_img.set_alpha(120)
                 elif player_sign == Joc.PLAYER2:
                     if ind == index:
                         cls.player2_img.set_alpha(500)  # make bigger opacity
                     else:
-                        cls.player2_img.set_alpha(80)
+                        cls.player2_img.set_alpha(120)
                 else:
-                    cls.player2_img.set_alpha(80)
-                    cls.player1_img.set_alpha(80)
+                    cls.player2_img.set_alpha(120)
+                    cls.player1_img.set_alpha(120)
             if click == 1:  # right click
                 if ind == index:
                     if player_sign == Joc.PLAYER1:
