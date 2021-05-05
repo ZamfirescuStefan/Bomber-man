@@ -3,11 +3,11 @@ import copy
 import pygame
 import sys
 
-ADANCIME_MAX = 5
+ADANCIME_MAX = 4
 
 
 def elem_identice(lista):
-    if len(set(lista)) == 1:
+    if (len(set(lista)) == 1):
         return lista[0] if lista[0] != Joc.GOL else False
     return False
 
@@ -248,7 +248,7 @@ class Stare:
 
 
 def min_max(stare):
-    if stare.adancime == 0 or stare.tabla_joc.check_final():
+    if stare.adancime == 0 or stare.tabla_joc.final():
         stare.scor = stare.tabla_joc.estimeaza_scor(stare.adancime)
         return stare
 
@@ -269,7 +269,7 @@ def min_max(stare):
 
 
 def alpha_beta(alpha, beta, stare):
-    if stare.adancime == 0 or stare.tabla_joc.check_final():
+    if stare.adancime == 0 or stare.tabla_joc.final():
         stare.scor = stare.tabla_joc.estimeaza_scor(stare.adancime)
         return stare
 
@@ -314,7 +314,7 @@ def alpha_beta(alpha, beta, stare):
 
 
 def afis_daca_final(stare_curenta):
-    final = stare_curenta.tabla_joc.check_final()
+    final = stare_curenta.tabla_joc.final()
     if (final):
         if (final == "remiza"):
             print("Remiza!")

@@ -6,6 +6,7 @@ import time
 import pygame
 from argparse import ArgumentParser
 
+import Button
 from UserInterface import Joc, Header
 from Stare import Stare, Player
 from src import Consts
@@ -97,12 +98,12 @@ def bomb_explode(stare: Stare, line_bomb, column_bomb, time=0):
             left[1] -= 1
         else:
             break
-    set2 = set(cell_explode).union(set(stare.end_zone))
-    # stare.end_zone = list(set2)
+    explode_cells = set(cell_explode).union(set(stare.end_zone))
+    set_next_step_explode = set(cell_explode).union(set(stare.next_step_explode))
     if time == 0:
-        stare.end_zone = list(cell_explode)
+        stare.end_zone = list(explode_cells)
     else:
-        stare.next_step_explode = list(cell_explode)
+        stare.next_step_explode = list(set_next_step_explode)
 
 
 def main():
@@ -138,11 +139,11 @@ def main():
 
     current_state = Stare(mat, jmin, jmin, jmax, 2)
     current_p = current_state.current_player
+    two_player, _ = Button.deseneaza_alegeri(ecran, mat)
     Joc.deseneaza_grid(mat, -1)
     global marked, bomb_down
     marked = False
     bomb_down = False
-    two_player = False  # if is true game is in 1 vs 1 mode else game is 1 vs computer
     end_game = False
     who_win = -1
     # while current_state.JMAX.lost is False and current_state.JMIN.lost is False:
@@ -151,7 +152,8 @@ def main():
             msg = f"Player {current_state.current_player.sign}"
             Joc.update_header(msg)
             # if he has not where to move he will lose
-            if current_state.has_valid_moves(current_state.current_player.pos[0], current_state.current_player.pos[1]) is False:
+            if current_state.has_valid_moves(current_state.current_player.pos[0],
+                                             current_state.current_player.pos[1]) is False:
                 current_state.current_player.lost = True
                 current_state.jucator_opus(current_state.current_player.sign)
                 continue
@@ -195,14 +197,6 @@ def main():
                                 current_state.matr[linie][coloana] == Joc.SHIELD) and marked and \
                                     Stare.checkValidMove(marked[0], marked[1], linie, coloana):
 
-                                # check if is a deadly move
-                                if (linie, coloana) in current_state.end_zone:
-
-                                    if current_state.current_player.nums_of_shields > 0:
-                                        current_state.current_player.nums_of_shields -= 1
-                                    else:
-                                        current_state.current_player.lost = True
-
                                 if current_state.matr[linie][coloana] == Joc.SHIELD:
                                     current_state.current_player.nums_of_shields += 1
 
@@ -233,11 +227,15 @@ def main():
 
                                 # for 2 player mode
                                 if current_state.current_player.sign == Joc.PLAYER2:
+                                    print(current_state.end_zone)
                                     who_win = current_state.check_final()
                                     if who_win != -1:
                                         end_game = True
+
                                 current_state.jucator_opus(current_state.current_player)
 
+                            current_state.end_zone = list(set(current_state.next_step_explode).union(
+                                current_state.end_zone))
                             # activate a bomb
                             if current_state.matr[linie][coloana] == Joc.IBOMB:
                                 if (linie, coloana) in current_state.current_player.list_of_bombs:
@@ -267,14 +265,22 @@ def main():
             if who_win != -1:
                 end_game = True
             Joc.deseneaza_grid(current_state.matr, player_sign=Joc.PLAYER2)
-            current_state.end_zone = set(current_state.next_step_explode).union(current_state.end_zone).union(set(old_state.next_step_explode))
+            current_state.end_zone = set(current_state.next_step_explode).union(current_state.end_zone).union(
+                set(old_state.next_step_explode))
 
             current_state.jucator_opus(current_state.current_player)
 
-
     win_player = Joc.PLAYER1 if current_state.JMAX.lost is True else Joc.PLAYER2
-    message = f"Player {win_player} win! "
+    if who_win == 0:
+        message = "Tie!"
+    elif who_win == 1:
+        message = "Player 1 win!"
+    else:
+        message = "Player 2 win!"
 
+    # message = f"Player {win_player} win! "
+    # if current_state.JMAX.lost is True and current_state.JMIN.lost is True:
+    #     message = "Tie!"
     while True:
         for event in pygame.event.get():
             header_message = message

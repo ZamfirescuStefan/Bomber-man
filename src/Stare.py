@@ -52,11 +52,13 @@ def bomb_explode(stare, line_bomb, column_bomb, time=0):  # time = 0 means now, 
             left[1] -= 1
         else:
             break
-    set2 = set(cell_explode).union(set(stare.end_zone))
+
+    set2 = set(stare.end_zone).union(set(cell_explode))
+    set_next_step_explode = set(stare.next_step_explode).union(set(cell_explode))
     if time == 0:
         stare.end_zone = list(set2)
     else:
-        stare.next_step_explode = set(cell_explode)
+        stare.next_step_explode = list(set_next_step_explode)
 
 
 class Stare:
@@ -116,12 +118,15 @@ class Stare:
                 self.JMIN.nums_of_shields -= 1
             else:
                 self.JMIN.lost = True
-        elif self.JMAX.pos in self.end_zone:
+            if self.JMIN.pos in self.next_step_explode:
+                self.JMIN.lost = False
+
+        if self.JMAX.pos in self.end_zone:
             if self.JMAX.nums_of_shields > 0:
                 self.JMAX.nums_of_shields -= 1
             else:
                 self.JMAX.lost = True
-
+        self.next_step_explode = []
         if self.JMIN.lost is True and self.JMAX.lost is True:
             return 0
         elif self.JMIN.lost is True:
@@ -162,7 +167,6 @@ class Stare:
     def mutari(self, player_sign):
         l_stari = []
         directions = [(0, +1), (0, -1), (1, 0), (-1, 0)]
-        player_pos = (0, 0)
 
         player_pos = self.current_player.pos
         for elem in directions:
@@ -196,9 +200,9 @@ class Stare:
                             stare_cpy.current_player.inactive_bomb[1]] = Joc.ABOMB
                         bomb_explode(stare_cpy, stare_cpy.current_player.inactive_bomb[0],
                                      stare_cpy.current_player.inactive_bomb[1], 1)
-                        print(
-                            f"Computer end-zones position bomb: ({stare_cpy.current_player.inactive_bomb[0]}, {stare_cpy.current_player.inactive_bomb[1]})")
-                        print(stare_cpy.end_zone)
+                        # print(
+                        #     f"Computer end-zones position bomb: ({stare_cpy.current_player.inactive_bomb[0]}, {stare_cpy.current_player.inactive_bomb[1]})")
+                        # print(stare_cpy.end_zone)
                     stare_cpy.current_player.inactive_bomb = (player_pos[0], player_pos[1])
                     stare_cpy.current_player.bomb_auto_placing = Joc.TIME_AUTO_BOMB
                     l_stari.append(stare_cpy)
