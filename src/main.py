@@ -106,6 +106,26 @@ def bomb_explode(stare: Stare, line_bomb, column_bomb, time=0):
         stare.next_step_explode = list(set_next_step_explode)
 
 
+def show_table(matr):
+    for elem in matr:
+        print("".join(elem))
+
+
+def end_game_dispay(lost_player):
+
+    if lost_player == '2':
+        message = "Player 1 win!"
+    else:
+        message = "Player 2 win!"
+    while True:
+        for quit_event in pygame.event.get():
+            header_message = message
+            Joc.update_header(header_message)
+            if quit_event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+
 def main():
     k = 1
     # System variables
@@ -207,7 +227,7 @@ def main():
                                         current_state.matr[current_state.current_player.inactive_bomb[0]][
                                             current_state.current_player.inactive_bomb[1]] = Joc.ABOMB
                                         bomb_explode(current_state, current_state.current_player.inactive_bomb[0],
-                                                     current_state.current_player.inactive_bomb[1], 1)
+                                                     current_state.current_player.inactive_bomb[1])
                                     current_state.current_player.inactive_bomb = (marked[0], marked[1])
 
                                     current_state.current_player.list_of_bombs.append(marked)
@@ -225,17 +245,14 @@ def main():
                                 if current_state.current_player.bomb_auto_placing < 0:
                                     current_state.current_player.bomb_auto_placing = Joc.TIME_AUTO_BOMB
 
-                                # for 2 player mode
-                                if current_state.current_player.sign == Joc.PLAYER2:
-                                    print(current_state.end_zone)
-                                    who_win = current_state.check_final()
-                                    if who_win != -1:
-                                        end_game = True
-
+                                end_game = current_state.check_final()
+                                if end_game:
+                                    lost_player = current_state.current_player.sign
+                                    end_game_dispay(lost_player)
                                 current_state.jucator_opus(current_state.current_player)
 
-                            current_state.end_zone = list(set(current_state.next_step_explode).union(
-                                current_state.end_zone))
+                            # current_state.end_zone = list(set(current_state.next_step_explode).union(
+                            #     current_state.end_zone))
                             # activate a bomb
                             if current_state.matr[linie][coloana] == Joc.IBOMB:
                                 if (linie, coloana) in current_state.current_player.list_of_bombs:
@@ -243,11 +260,11 @@ def main():
                                     if (linie, coloana) == current_state.current_player.inactive_bomb:
                                         current_state.current_player.inactive_bomb = None
                                     Joc.deseneaza_grid(current_state.matr, current_state.current_player.sign)
-                                    bomb_explode(current_state, linie, coloana, 0)
+                                    bomb_explode(current_state, linie, coloana)
         else:
             header_message = "Computer turn"
             Joc.update_header(header_message)
-
+            current_state.estimeaza_scor(2)
             current_state.mutari(Joc.PLAYER2)
             old_state = current_state
             old_current_state_moves = current_state.mutari_posibile
@@ -260,20 +277,18 @@ def main():
                 break
             rand_state = random.randint(0, len(current_state.mutari_posibile) - 1)
             current_state = current_state.mutari_posibile[rand_state]
-
-            who_win = current_state.check_final()
-            if who_win != -1:
-                end_game = True
+            show_table(current_state.matr)
             Joc.deseneaza_grid(current_state.matr, player_sign=Joc.PLAYER2)
-            current_state.end_zone = set(current_state.next_step_explode).union(current_state.end_zone).union(
-                set(old_state.next_step_explode))
 
+            end_game = current_state.check_final()
+            if end_game:
+                lost_player = current_state.current_player.sign
+                end_game_dispay(lost_player)
             current_state.jucator_opus(current_state.current_player)
 
-    win_player = Joc.PLAYER1 if current_state.JMAX.lost is True else Joc.PLAYER2
-    if who_win == 0:
-        message = "Tie!"
-    elif who_win == 1:
+    # win_player = Joc.PLAYER1 if current_state.JMAX.lost is True else Joc.PLAYER2
+    win_player = current_state.current_player.sign
+    if who_win == 1:
         message = "Player 1 win!"
     else:
         message = "Player 2 win!"

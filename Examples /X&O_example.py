@@ -42,7 +42,7 @@ class Joc:
                or elem_identice(self.matr[2:9:3])
                or elem_identice(self.matr[0:9:4])
                or elem_identice(self.matr[2:8:2]))
-        if rez:
+        if (rez):
             return rez
         elif Joc.GOL not in self.matr:
             return 'remiza'
@@ -87,7 +87,7 @@ class Joc:
         elif t_final == 'remiza':
             return 0
         else:
-            return self.linii_deschise(self.__class__.JMAX) - self.linii_deschise(self.__class__.JMIN)
+            return (self.linii_deschise(self.__class__.JMAX) - self.linii_deschise(self.__class__.JMIN))
 
     def sirAfisare(self):
         sir = "  |"
@@ -152,7 +152,7 @@ class Stare:
 
 def min_max(stare):
     # daca sunt la o frunza in arborele minimax sau la o stare finala
-    if stare.adancime == 0 or stare.tabla_joc.check_final():
+    if stare.adancime == 0 or stare.tabla_joc.final():
         stare.estimare = stare.tabla_joc.estimeaza_scor(stare.adancime)
         return stare
 
@@ -163,7 +163,7 @@ def min_max(stare):
     mutariCuEstimare = [min_max(x) for x in
                         stare.mutari_posibile]  # expandez(constr subarb) fiecare nod x din mutari posibile
 
-    if stare.current_player == Joc.JMAX:
+    if stare.j_curent == Joc.JMAX:
         # daca jucatorul e JMAX aleg starea-fiica cu estimarea maxima
         stare.stare_aleasa = max(mutariCuEstimare, key=lambda x: x.estimare)  # def f(x): return x.estimare -----> key=f
     else:
@@ -175,7 +175,7 @@ def min_max(stare):
 
 
 def alpha_beta(alpha, beta, stare):
-    if stare.adancime == 0 or stare.tabla_joc.check_final():
+    if stare.adancime == 0 or stare.tabla_joc.final():
         stare.estimare = stare.tabla_joc.estimeaza_scor(stare.adancime)
         return stare
 
@@ -184,7 +184,7 @@ def alpha_beta(alpha, beta, stare):
 
     stare.mutari_posibile = stare.mutari()
 
-    if stare.current_player == Joc.JMAX:
+    if stare.j_curent == Joc.JMAX:
         estimare_curenta = float('-inf')  # in aceasta variabila calculam maximul
 
         for mutare in stare.mutari_posibile:
@@ -199,7 +199,7 @@ def alpha_beta(alpha, beta, stare):
                 if alpha >= beta:
                     break
 
-    elif stare.current_player == Joc.JMIN:
+    elif stare.j_curent == Joc.JMIN:
         estimare_curenta = float('inf')
         # completati cu rationament similar pe cazul stare.j_curent==Joc.JMAX
         for mutare in stare.mutari_posibile:
@@ -220,9 +220,9 @@ def alpha_beta(alpha, beta, stare):
 
 
 def afis_daca_final(stare_curenta):
-    final = stare_curenta.tabla_joc.check_final()  # metoda final() returneaza "remiza" sau castigatorul ("x" sau "0") sau False daca nu e stare finala
-    if final:
-        if final == "remiza":
+    final = stare_curenta.tabla_joc.final()  # metoda final() returneaza "remiza" sau castigatorul ("x" sau "0") sau False daca nu e stare finala
+    if (final):
+        if (final == "remiza"):
             print("Remiza!")
         else:
             print("A castigat " + final)

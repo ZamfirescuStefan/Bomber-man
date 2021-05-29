@@ -54,11 +54,8 @@ def bomb_explode(stare, line_bomb, column_bomb, time=0):  # time = 0 means now, 
             break
 
     set2 = set(stare.end_zone).union(set(cell_explode))
-    set_next_step_explode = set(stare.next_step_explode).union(set(cell_explode))
-    if time == 0:
-        stare.end_zone = list(set2)
-    else:
-        stare.next_step_explode = list(set_next_step_explode)
+    stare.end_zone = list(set2)
+
 
 
 class Stare:
@@ -113,28 +110,14 @@ class Stare:
         return nr_mutari
 
     def check_final(self):
-        if self.JMIN.pos in self.end_zone:
-            if self.JMIN.nums_of_shields > 0:
-                self.JMIN.nums_of_shields -= 1
+        player = self.current_player
+        if player.pos in self.end_zone:
+            if player.nums_of_shields > 0:
+                player.nums_of_shields -= 1
             else:
                 self.JMIN.lost = True
-            if self.JMIN.pos in self.next_step_explode:
-                self.JMIN.lost = False
-
-        if self.JMAX.pos in self.end_zone:
-            if self.JMAX.nums_of_shields > 0:
-                self.JMAX.nums_of_shields -= 1
-            else:
-                self.JMAX.lost = True
-        self.next_step_explode = []
-        if self.JMIN.lost is True and self.JMAX.lost is True:
-            return 0
-        elif self.JMIN.lost is True:
-            return 2
-        elif self.JMAX.lost is True:
-            return 1
-        else:
-            return -1
+                return True
+        return False
 
     def has_valid_moves(self, linie, coloana):
         directions = [(0, +1), (0, -1), (1, 0), (-1, 0)]
@@ -207,58 +190,50 @@ class Stare:
                     stare_cpy.current_player.bomb_auto_placing = Joc.TIME_AUTO_BOMB
                     l_stari.append(stare_cpy)
 
-        if self.current_player.inactive_bomb is not None:
-            stare_cpy = copy.deepcopy(self)
-            stare_cpy.matr[stare_cpy.current_player.inactive_bomb[0]][stare_cpy.current_player.inactive_bomb[1]] = Joc.ABOMB
-            bomb_explode(stare_cpy, stare_cpy.current_player.inactive_bomb[0], stare_cpy.current_player.inactive_bomb[1])
-            stare_cpy.current_player.inactive_bomb = None
-            l_stari.append(stare_cpy)
+        # if self.current_player.inactive_bomb is not None:
+        #     stare_cpy = copy.deepcopy(self)
+        #     stare_cpy.matr[stare_cpy.current_player.inactive_bomb[0]][stare_cpy.current_player.inactive_bomb[1]] = Joc.ABOMB
+        #     bomb_explode(stare_cpy, stare_cpy.current_player.inactive_bomb[0], stare_cpy.current_player.inactive_bomb[1])
+        #     stare_cpy.current_player.inactive_bomb = None
+        #     l_stari.append(stare_cpy)
         self.mutari_posibile = l_stari
 
     # linie deschisa inseamna linie pe care jucatorul mai poate forma o configuratie castigatoare
     # practic e o linie fara simboluri ale jucatorului opus
-    def linie_deschisa(self, lista, jucator):
-        jo = self.jucator_opus(jucator)
-        # verific daca pe linia data nu am simbolul jucatorului l
-        if not jo in lista:
-            # return 1
-            return lista.count(jucator)
-        return 0
-
-    def linii_deschise(self, jucator):
-
-        linii = 0
-        for i in range(self.__class__.NR_LINII):
-            for j in range(self.__class__.NR_COLOANE - 3):
-                linii += self.linie_deschisa(self.matr[i][j:j + 4], jucator)
-
-        for j in range(self.__class__.NR_COLOANE):
-            for i in range(self.__class__.NR_LINII - 3):
-                linii += self.linie_deschisa([self.matr[k][j] for k in range(i, i + 4)], jucator)
-
-        # \
-        for i in range(self.__class__.NR_LINII - 3):
-            for j in range(self.__class__.NR_COLOANE - 3):
-                linii += self.linie_deschisa([self.matr[i + k][j + k] for k in range(0, 4)], jucator)
-
-        # /
-        for i in range(self.__class__.NR_LINII - 3):
-            for j in range(3, self.__class__.NR_COLOANE):
-                linii += self.linie_deschisa([self.matr[i + k][j - k] for k in range(0, 4)], jucator)
-
-        return linii
-
     def estimeaza_scor(self, adancime):
         t_final = self.check_final()
         # if (adancime==0):
-        if t_final == self.__class__.JMAX:
-            return self.__class__.scor_maxim + adancime
-        elif t_final == self.__class__.JMIN:
-            return -self.__class__.scor_maxim - adancime
-        elif t_final == 'remiza':
+        if t_final == 2:  # jucatorul a pierdut
+            return 100
+        elif t_final == 1:  # calculatorul a pierdut
+            return -100
+        elif t_final == 0:  # este remiza
             return 0
         else:
-            return self.linii_deschise(self.__class__.JMAX) - self.linii_deschise(self.__class__.JMIN)
+            return self.all_valid_spaces(self.JMAX)
+
+    def all_valid_spaces(self, player):
+        pos_player = player.pos
+        directions = [(0, -1), (-1, 0), (1, 0), (0, 1)]
+        tail = [pos_player]
+        was_in_tail = [pos_player]
+        num_of_free_spaces = 0
+        while tail:
+            for direction in directions:
+                new_pos_x = tail[0][0] + direction[0]
+                new_pos_y = tail[0][1] + direction[1]
+                if (self.matr[new_pos_x][new_pos_y] == Joc.GOL or self.matr[new_pos_x][new_pos_y] == Joc.SHIELD )and (new_pos_x, new_pos_y) not in self.end_zone and (new_pos_x, new_pos_y) not in was_in_tail:
+                    tail.append((new_pos_x, new_pos_y))
+                    num_of_free_spaces += 1
+                    was_in_tail.append((new_pos_x, new_pos_y))
+                    # if num_of_free_spaces > 200:
+                    #     print(num_of_free_spaces)
+                    #     return 100
+                    # if self.matr[new_pos_x][new_pos_y] == Joc.SHIELD:
+                    #     num_of_free_spaces += 2
+
+            tail.pop(0)
+        print(num_of_free_spaces)
 
     def sirAfisare(self):
         sir = "  |"
